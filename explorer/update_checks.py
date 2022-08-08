@@ -40,7 +40,7 @@ def _get_tests() -> Set[str]:
             if os.path.splitext(f)[1] == ".carbon":
                 tests.add(os.path.join(root, f))
             else:
-                sys.exit("Unrecognized file type in testdata: %s" % f)
+                sys.exit(f"Unrecognized file type in testdata: {f}")
     return tests
 
 
@@ -126,15 +126,13 @@ class CheckLineWithLineNumber(CheckLine):
 def _make_check_line(out_line: str) -> CheckLine:
     """Given a line of output, determine what CHECK line to produce."""
     out_line = out_line.rstrip()
-    match = re.match(_LINE_NUMBER_RE, out_line)
-    if match:
-        # Convert from 1-based line numbers to 0-based indexes.
-        diagnostic_line_number = int(match[2]) - 1
-        return CheckLineWithLineNumber(
-            match[1], diagnostic_line_number, match[3]
-        )
-    else:
+    if not (match := re.match(_LINE_NUMBER_RE, out_line)):
         return SimpleCheckLine(out_line)
+    # Convert from 1-based line numbers to 0-based indexes.
+    diagnostic_line_number = int(match[2]) - 1
+    return CheckLineWithLineNumber(
+        match[1], diagnostic_line_number, match[3]
+    )
 
 
 def _should_produce_check_line(
@@ -221,8 +219,7 @@ def _update_check_once(test: str) -> bool:
         ):
             # Indent the CHECK: line to match the next original line.
             if next_orig_line:
-                match = re.match(" *", next_orig_line.text)
-                if match:
+                if match := re.match(" *", next_orig_line.text):
                     next_check_line.indent = match[0]
             result_lines.append(next_check_line)
             next_check_line = next(check_line_iter, None)
@@ -261,7 +258,7 @@ def _update_check(test: str) -> None:
         and _update_check_once(test)
         and _update_check_once(test)
     ):
-        raise ValueError("The output of %s kept changing" % test)
+        raise ValueError(f"The output of {test} kept changing")
     print(".", end="", flush=True)
 
 

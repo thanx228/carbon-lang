@@ -118,10 +118,7 @@ class Class:
 
     def Root(self) -> "Class":
         """Returns the root Class of this hierarchy."""
-        if self.kind == Class.Kind.ROOT:
-            return self
-        else:
-            return self.ancestors[0]
+        return self if self.kind == Class.Kind.ROOT else self.ancestors[0]
 
     def _RegisterLeaf(self, leaf: "Class") -> None:
         """Records that `leaf` is derived from self.
@@ -153,9 +150,8 @@ class Class:
                 assert self.id_range[1] == leaf.id + 1
                 already_visited = True
 
-        if not already_visited:
-            if self.kind != Class.Kind.ROOT:
-                self.Parent()._RegisterLeaf(leaf)
+        if not already_visited and self.kind != Class.Kind.ROOT:
+            self.Parent()._RegisterLeaf(leaf)
 
     def Finalize(self) -> None:
         """Populates additional attributes for `self` and derived Classes.
