@@ -75,7 +75,7 @@ def _parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
 
 def _load_org_members(client: github_helpers.Client) -> Set[str]:
     """Loads org members."""
-    print("Loading %s..." % _ORG)
+    print(f"Loading {_ORG}...")
     org_members = set()
     ignored = set()
     for node in client.execute_and_paginate(
@@ -91,18 +91,20 @@ def _load_org_members(client: github_helpers.Client) -> Set[str]:
         % (_ORG, len(org_members), len(ignored))
     )
     unignored = set(_IGNORE_ACCOUNTS) - ignored
-    assert not unignored, "Missing ignored accounts: %s" % unignored
+    assert not unignored, f"Missing ignored accounts: {unignored}"
     return org_members
 
 
 def _load_team_members(client: github_helpers.Client) -> Set[str]:
     """Load team members."""
-    print("Loading %s..." % _TEAM)
-    team_members = set()
-    for node in client.execute_and_paginate(
-        _TEAM_MEMBER_QUERY % (_ORG, _TEAM), _TEAM_MEMBER_PATH
-    ):
-        team_members.add(node["login"])
+    print(f"Loading {_TEAM}...")
+    team_members = {
+        node["login"]
+        for node in client.execute_and_paginate(
+            _TEAM_MEMBER_QUERY % (_ORG, _TEAM), _TEAM_MEMBER_PATH
+        )
+    }
+
     print("%s has %d members." % (_ORG, len(team_members)))
     return team_members
 
@@ -115,15 +117,13 @@ def _update_team(
     This switches to pygithub because GraphQL lacks equivalent mutation support.
     """
     gh_team = gh.get_organization(_ORG).get_team_by_slug(_TEAM)
-    add_members = org_members - team_members
-    if add_members:
-        print("Adding members: %s" % ", ".join(add_members))
+    if add_members := org_members - team_members:
+        print(f'Adding members: {", ".join(add_members)}')
         for member in add_members:
             gh_team.add_membership(gh.get_user(member))
 
-    remove_members = team_members - org_members
-    if remove_members:
-        print("Removing members: %s" % ", ".join(remove_members))
+    if remove_members := team_members - org_members:
+        print(f'Removing members: {", ".join(remove_members)}')
         for member in remove_members:
             gh_team.remove_membership(gh.get_user(member))
 

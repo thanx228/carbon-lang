@@ -57,8 +57,7 @@ class TestUpdateLabelAccess(unittest.TestCase):
             ["foo", "bar"] + list(update_label_access._IGNORE_ACCOUNTS)
         )
         self.assertEqual(
-            update_label_access._load_org_members(self.client),
-            set(["foo", "bar"]),
+            update_label_access._load_org_members(self.client), {"foo", "bar"}
         )
 
     def test_load_team_members_empty(self):
@@ -70,33 +69,26 @@ class TestUpdateLabelAccess(unittest.TestCase):
     def test_load_team_members_found(self):
         self._mock_nodes(["foo", "bar"])
         self.assertEqual(
-            update_label_access._load_team_members(self.client),
-            set(["foo", "bar"]),
+            update_label_access._load_team_members(self.client), {"foo", "bar"}
         )
 
     def test_update_team_empty(self):
         update_label_access._update_team(self.gh, set(), set())
 
     def test_update_team_equal(self):
-        update_label_access._update_team(
-            self.gh, set(["foo", "bar"]), set(["foo", "bar"])
-        )
+        update_label_access._update_team(self.gh, {"foo", "bar"}, {"foo", "bar"})
 
     def test_update_team_add(self):
         self.gh.get_user = mock.MagicMock(return_value="bar-user")
         self.gh_team.add_membership = mock.MagicMock()
-        update_label_access._update_team(
-            self.gh, set(["foo", "bar"]), set(["foo"])
-        )
+        update_label_access._update_team(self.gh, {"foo", "bar"}, {"foo"})
         self.gh.get_user.assert_called_once_with("bar")
         self.gh_team.add_membership.assert_called_once_with("bar-user")
 
     def test_update_team_remove(self):
         self.gh.get_user = mock.MagicMock(return_value="bar-user")
         self.gh_team.remove_membership = mock.MagicMock()
-        update_label_access._update_team(
-            self.gh, set(["foo"]), set(["foo", "bar"])
-        )
+        update_label_access._update_team(self.gh, {"foo"}, {"foo", "bar"})
         self.gh.get_user.assert_called_once_with("bar")
         self.gh_team.remove_membership.assert_called_once_with("bar-user")
 

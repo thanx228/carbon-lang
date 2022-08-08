@@ -26,13 +26,10 @@ config.substitutions.append(
 config.substitutions.append(
     (
         "%{explorer}",
-        "%s --prelude=%s"
-        % (
-            fullpath("carbon/explorer/explorer"),
-            fullpath("carbon/explorer/data/prelude.carbon"),
-        ),
+        f'{fullpath("carbon/explorer/explorer")} --prelude={fullpath("carbon/explorer/data/prelude.carbon")}',
     )
 )
+
 config.substitutions.append(("%{not}", fullpath("llvm-project/llvm/not")))
 config.substitutions.append(
     (
